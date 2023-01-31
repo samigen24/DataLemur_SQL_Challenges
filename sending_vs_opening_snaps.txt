@@ -1,0 +1,29 @@
+with cte as (select user_id, age_bucket, activity_type, time_spent
+from age_breakdown 
+join activities using(user_id)
+
+),
+
+cte1 as (SELECT user_id, age_bucket, sum(time_spent) as time_spent_open
+FROM cte
+where activity_type= 'open'
+GROUP BY user_id, age_bucket),
+
+cte2 as (SELECT user_id, age_bucket, sum(time_spent) as time_spent_send
+FROM cte
+where activity_type= 'send'
+GROUP BY user_id, age_bucket),
+
+cte3 as (SELECT user_id, cte1.age_bucket, 
+time_spent_open + time_spent_send as total_time_spent
+FROM cte1 
+join cte2 using(user_id))
+
+select cte1.age_bucket,  
+  round((cte2.time_spent_send/total_time_spent)*100.0, 2) as pct_spent_send,
+  round((cte1.time_spent_open/total_time_spent)*100.0, 2) as pct_spent_open
+  
+from cte1 
+join cte2 using(user_id)
+join cte3 using(user_id)
+order by cte1.age_bucket asc

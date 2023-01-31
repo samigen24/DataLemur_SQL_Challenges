@@ -1,0 +1,10 @@
+with cte as (SELECT user_id, tweet_date, count(tweet_id) 
+FROM tweets
+GROUP BY user_id, tweet_date
+order by user_id, tweet_date)
+
+select user_id, tweet_date,
+round(avg(count) OVER(partition by user_id order by tweet_date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW), 2) as avg
+
+from cte 
+order by user_id
